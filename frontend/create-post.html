@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Create Post</title>
+</head>
+<body>
+
+<h2>Create Blog Post</h2>
+
+<input type="text" id="title" placeholder="Post Title">
+<br><br>
+
+<textarea
+        id="content"
+        rows="8"
+        cols="50"
+        placeholder="Write your blog content here..."
+></textarea>
+
+<br><br>
+
+<input type="text" id="author" placeholder="Author Name">
+
+<br><br>
+
+<button onclick="createPost()">
+    Publish Post
+</button>
+
+<p id="message"></p>
+
+<script>
+    async function createPost() {
+
+        const title = document.getElementById("title").value;
+        const content = document.getElementById("content").value;
+        const author = document.getElementById("author").value;
+
+        try {
+
+            const response = await fetch(
+                "http://localhost:5000/posts",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        title,
+                        content,
+                        author
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            document.getElementById("message").innerText =
+                data.message;
+
+            document.getElementById("title").value = "";
+            document.getElementById("content").value = "";
+            document.getElementById("author").value = "";
+
+        } catch (error) {
+
+            document.getElementById("message").innerText =
+                "Failed to create post";
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Blog Platform</title>
+</head>
+<body>
+
+<h1>📝 Blog Platform</h1>
+
+<div id="posts"></div>
+
+<script>
+
+    async function loadPosts() {
+
+        const response = await fetch(
+            "http://localhost:5000/posts"
+        );
+
+        const posts = await response.json();
+
+        const postContainer =
+            document.getElementById("posts");
+
+        postContainer.innerHTML = "";
+
+        posts.forEach(post => {
+
+            postContainer.innerHTML += `
+            <hr>
+
+            <h2>${post.title}</h2>
+
+            <p>${post.content}</p>
+
+            <small>
+                Author: ${post.author}
+            </small>
+
+            <br><br>
+
+            <button onclick="editPost('${post._id}')">
+                Edit Post
+            </button>
+
+            <button onclick="deletePost('${post._id}')">
+                Delete Post
+            </button>
+
+            <br><br>
+
+            <input
+                type="text"
+                id="comment-${post._id}"
+                placeholder="Write a comment"
+            >
+
+            <button onclick="addComment('${post._id}')">
+                Add Comment
+            </button>
+
+            <div id="comments-${post._id}">
+            </div>
+        `;
+
+            loadComments(post._id);
+
+        });
+
+    }
+
+    async function editPost(postId) {
+
+        const newTitle = prompt("Enter new title");
+        const newContent = prompt("Enter new content");
+
+        if (!newTitle || !newContent) {
+            return;
+        }
+
+        await fetch(
+            `http://localhost:5000/posts/${postId}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    title: newTitle,
+                    content: newContent
+                })
+            }
+        );
+
+        loadPosts();
+    }
+
+    async function deletePost(postId) {
+
+        const confirmDelete =
+            confirm("Are you sure you want to delete this post?");
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        await fetch(
+            `http://localhost:5000/posts/${postId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        loadPosts();
+    }
+
+    async function addComment(postId) {
+
+        const text =
+            document.getElementById(
+                `comment-${postId}`
+            ).value;
+
+        if (!text) {
+            return;
+        }
+
+        await fetch(
+            "http://localhost:5000/comments",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    postId,
+                    userName: "Guest User",
+                    text
+                })
+            }
+        );
+
+        loadComments(postId);
+
+        document.getElementById(
+            `comment-${postId}`
+        ).value = "";
+
+    }
+
+    async function loadComments(postId) {
+
+        const response = await fetch(
+            `http://localhost:5000/comments/${postId}`
+        );
+
+        const comments =
+            await response.json();
+
+        const commentDiv =
+            document.getElementById(
+                `comments-${postId}`
+            );
+
+        commentDiv.innerHTML = "";
+
+        comments.forEach(comment => {
+
+            commentDiv.innerHTML += `
+            <p>
+                💬 ${comment.userName}: ${comment.text}
+            </p>
+        `;
+
+        });
+
+    }
+
+    loadPosts();
+
+</script>
+
+</body>
+</html>
